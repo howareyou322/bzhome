@@ -1,0 +1,6 @@
+{
+  "name": "Bzhome",
+  "tagline": "Bugzilla dashboard",
+  "body": "# bzhome\r\n\r\nbzhome is a small personal Bugzilla dashboard for [bugzilla.mozilla.org](https://bugzilla.mozilla.org/) users. It shows the user's recently updated bugs, assigned bugs, reviews, and has a shortcut for filing bugs.\r\n\r\n",
+  "note": "Don't delete this file! It's used internally to help with page regeneration."
+}
