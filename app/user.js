@@ -104,7 +104,7 @@ User.prototype.requests = function(callback) {
                      flag: flag,
                      attachment: null,
                      bug: bug,
-                     time: null
+                     time: flag.creation_date
                   });
                }
             });
@@ -114,7 +114,6 @@ User.prototype.requests = function(callback) {
       superReviews.sort(utils.byTime);
       reviews.sort(utils.byTime);
       feedbacks.sort(utils.byTime);
-      // Sorting for needinfo is pointless because there is no time information.
-
+      needInfos.sort(utils.byTime);
       callback(null, { superReviews: superReviews, reviews: reviews, feedbacks: feedbacks, needInfos: needInfos });   });
 }
