@@ -63,60 +63,59 @@ User.prototype.requests = function(callback) {
     'type0-0-0': 'equals',
     'value0-0-0': this.username,
     include_fields: 'id,summary,status,resolution,last_change_time,attachments,flags'
-  },
-                         function(err, bugs) {
-                           if (err) {
-                             return callback(err);
-                           }
+  }, function(err, bugs) {
+    if (err) {
+      return callback(err);
+    }
 
-                           bugs.forEach(function(bug) {
-                             // only add attachments with this user as requestee
-                             if (bug.attachments) {
-                               bug.attachments.forEach(function(att) {
-                                 if (att.is_obsolete || !att.flags) {
-                                   return;
-                                 }
-                                 att.flags.forEach(function(flag) {
-                                   if (flag.requestee && flag.requestee.name == name
-                                       && flag.status == "?") {
-                                     var request = {
-                                       flag: flag,
-                                       attachment: att,
-                                       bug: bug,
-                                       time: att.last_change_time
-                                     };
+    bugs.forEach(function(bug) {
+      // only add attachments with this user as requestee
+      if (bug.attachments) {
+        bug.attachments.forEach(function(att) {
+          if (att.is_obsolete || !att.flags) {
+            return;
+          }
+          att.flags.forEach(function(flag) {
+            if (flag.requestee && flag.requestee.name == name
+                && flag.status == "?") {
+              var request = {
+                flag: flag,
+                attachment: att,
+                bug: bug,
+                time: att.last_change_time
+              };
 
-                                     if (flag.name == "superreview") {
-                                       superReviews.push(request);
-                                     }
-                                     if (flag.name == "review") {
-                                       reviews.push(request);
-                                     }
-                                     else if (flag.name == "feedback") {
-                                       feedbacks.push(request);
-                                     }
-                                   }
-                                 });
-                               });
-                             }
-                             if (bug.flags) {
-                               bug.flags.forEach(function(flag) {
-                                 if (flag.requestee && flag.requestee.name == name
-                                     && flag.status == '?' && flag.name == 'needinfo') {
-                                   needInfos.push({
-                                     flag: flag,
-                                     attachment: null,
-                                     bug: bug,
-                                     time: flag.creation_date
-                                   });
-                                 }
-                               });
-                             }
-                           });
+              if (flag.name == "superreview") {
+                superReviews.push(request);
+              }
+              if (flag.name == "review") {
+                reviews.push(request);
+              }
+              else if (flag.name == "feedback") {
+                feedbacks.push(request);
+              }
+            }
+          });
+        });
+      }
+      if (bug.flags) {
+        bug.flags.forEach(function(flag) {
+          if (flag.requestee && flag.requestee.name == name
+              && flag.status == '?' && flag.name == 'needinfo') {
+            needInfos.push({
+              flag: flag,
+              attachment: null,
+              bug: bug,
+              time: flag.creation_date
+            });
+          }
+        });
+      }
+    });
 
-                           superReviews.sort(utils.byTime);
-                           reviews.sort(utils.byTime);
-                           feedbacks.sort(utils.byTime);
-                           needInfos.sort(utils.byTime);
-                           callback(null, { superReviews: superReviews, reviews: reviews, feedbacks: feedbacks, needInfos: needInfos });   });
+    superReviews.sort(utils.byTime);
+    reviews.sort(utils.byTime);
+    feedbacks.sort(utils.byTime);
+    needInfos.sort(utils.byTime);
+    callback(null, { superReviews: superReviews, reviews: reviews, feedbacks: feedbacks, needInfos: needInfos });   });
 }
