@@ -17,14 +17,17 @@ User.prototype.bugs = function(methods, callback) {
       email1_type: "equals",
       order: "changeddate DESC",
       limit: this.limit,
-      include_fields: this.fields
+     include_fields: this.fields,
+     //TODO generate time automatically
+     last_change_time: "2016-03-01"
    };
 
    if (methods.indexOf('cced') >= 0) {
       query['email1_cc'] = 1;
    }
    if (methods.indexOf('assigned') >= 0) {
-      query['email1_assigned_to'] = 1;
+     query['email1_assigned_to'] = 1;
+     query['limit']= 50;
    }
    if (methods.indexOf('reporter') >= 0) {
       query['email1_reporter'] = 1;

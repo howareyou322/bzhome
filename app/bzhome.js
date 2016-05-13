@@ -26,7 +26,7 @@ $(document).ready(function() {
     $("#teamtable tr.person td>input").keypress(function (e) {
       if (e.which == 13) {
         $(this).blur();
-        $(this).prop("disabled", true);
+        //$(this).prop("disabled", true);
         console.log($(this).val());
         $("#login-name").val($(this).val());
         $("#login-name").submit();
@@ -100,7 +100,9 @@ $(document).ready(function() {
    input.blur(function() {
       var email = input.val();
       if (email && email != bzhome.email) {
-         bzhome.login(email);
+        bugopen=0;
+        bugclose=0;
+        bzhome.login(email);
       }
    });
 
@@ -371,8 +373,6 @@ var bzhome = {
                console.log("found match start");
                $(this).find(".open").text(bugopen);
                $(this).find(".close").text(bugclose);
-               bugopen = 0;
-               bugclose = 0;
 
                console.log($(this).find(".open"));
                console.log("found match");
