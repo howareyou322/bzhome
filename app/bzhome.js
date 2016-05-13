@@ -7,7 +7,58 @@ $(document).ready(function() {
    } catch(e) {
       console.error(e);
    }
-   
+  var id=0;
+  bugopen=0;
+  bugclose=0;
+
+  $("table.dynatable button.add").click(function() {
+    id++;
+    var master = $(this).parents("table.dynatable");
+
+    // Get a new row based on the prototype row
+    var prot = master.find(".template").clone();
+    prot.attr("class", "person");
+    prot.attr("id", "person"+id);
+    $("#teamtable").append(prot);
+    console.log("button add is clicked");
+    $("#teamtable tr.person td>input").focus();
+
+    $("#teamtable tr.person td>input").keypress(function (e) {
+      if (e.which == 13) {
+        $(this).blur();
+        $(this).prop("disabled", true);
+        console.log($(this).val());
+        $("#login-name").val($(this).val());
+        $("#login-name").submit();
+        console.log("finish input and trigger bugzilla query");
+      }
+    });
+
+    //traverse table function
+    $("#teamtable tr").each(function() {
+      $(this).find("td>input").each(function() {
+        console.log(this);
+        console.log($(this).val());
+        console.log("finish");
+      });
+    });
+  });
+
+  //TODO debug here
+  $("#teamtable tr.person td.name").click(function() {
+    console.log($(this).find("input"));
+    console.log($(this).find("input").val());
+    console.log("person is clicked");
+  });
+
+  // Remove button functionality
+  $("table.dynatable button.remove").click(function() {
+    if (id) {
+      $("#teamtable tr.person:last-child").remove();
+      id--;
+    }
+  });
+
    /* timeline types */
    bzhome.components.forEach(function(comp) {
       var name = bzhome.componentName(comp),
@@ -58,7 +109,7 @@ $(document).ready(function() {
       event.preventDefault();
       input.blur();
    });
-   
+
    $("#file-form").submit(function(event) {
       event.preventDefault();
 
@@ -232,7 +283,7 @@ var bzhome = {
 
    populateSections : function() {
       $(".type-section").html("<img src='lib/indicator.gif' class='spinner'></img>");
-      bzhome.fetchRecent();      
+      bzhome.fetchRecent();
    },
    
    fetchRecent : function() {     
@@ -295,14 +346,39 @@ var bzhome = {
       element.empty();
       
       bugs.sort(function(bug1, bug2) {
-         return new Date(bug2.last_change_time) - new Date(bug1.last_change_time);   
+         return new Date(bug2.last_change_time) - new Date(bug1.last_change_time);
       })
 
       var html = "";
       for (var i = 0; i < bugs.length; i++) {
-         html += bzhome.templates.timelineBug({ bug: bugs[i] });
+        html += bzhome.templates.timelineBug({ bug: bugs[i] });
+
+        if (type=='assigned') {
+          if (!bzhome.isOpen(bugs[i])) {
+            bugclose++;
+            console.log("closed bug");
+            console.log(bugs[i].id);
+          } else {
+            bugopen++;
+          }
+        }
       }
       element.append(html);
+
+        if (type=='assigned') {
+          $("#teamtable tr").each(function() {
+             if($(this).find("td>input").val() == $("#login-name").val()) {
+               console.log("found match start");
+               $(this).find(".open").text(bugopen);
+               $(this).find(".close").text(bugclose);
+               bugopen = 0;
+               bugclose = 0;
+
+               console.log($(this).find(".open"));
+               console.log("found match");
+             }
+           });
+        }
 
       $(".timeago").timeago();
 
@@ -314,19 +390,20 @@ var bzhome = {
       var id = "#" + type + " .bug-" + bug.id;
       
       bzhome.user.client.getBug(bug.id, {
-         include_fields: 'id,summary,status,resolution,history,'
-           + 'comments,last_change_time,creator,creation_time'
+         include_fields: 'id,assigned_to,summary,status,resolution,history,'
+           + 'comments,last_change_time,creator,creation_time,assigned_to_detail'
       }, function(err, bug) {
          if (err) {
             return console.log(err);
          }
          
          if (!bzhome.isOpen(bug)) {
-            $(id + " .timeline-bug").addClass("closed-bug");
+           $(id + " .timeline-bug").addClass("closed-bug");
          }
          
          var events = [],
              history = bug.history;
+        /*
          history.reverse(); // newest to oldest
          for (var i = 0; i < history.length; i++) {
             var changeset = history[i];
@@ -336,11 +413,16 @@ var bzhome = {
                author: changeset.changer
             });
          }
+         */
 
          var comments = bug.comments;
          comments.reverse(); // newest to oldest
          for (var i = 0; i < comments.length; i++) {
-            var comment = comments[i];
+           var comment = comments[i];
+           if (type == 'assigned' && bug.assigned_to.name == comment.creator.name) {
+             //TODO debug
+             //console.log(comment);
+           }
             events.push({
                time: comment.creation_time,
                comment: comment,
@@ -356,7 +438,7 @@ var bzhome = {
       
          var html = bzhome.templates.bugEvents({ bug: bug, events:events });
          $(id).append(html);
-         
+       
          $(id + " .event:not(:first-child)").hide();
 
          // click first event to expand events
@@ -395,7 +477,6 @@ var bzhome = {
                });
             }
          }
-         
          input.autocomplete({
            list: components,
            minCharacters: 2,
@@ -422,3 +503,4 @@ var bzhome = {
       });
    }
 };
+
