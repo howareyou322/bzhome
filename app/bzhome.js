@@ -110,6 +110,12 @@ $(document).ready(function() {
     // when the user presses "Enter" in login input
     event.preventDefault();
     input.blur();
+
+    //var searchlist = new SearchList;
+    var reviewlist = new ReviewList;
+    var feedbacklist = new FeedbackList;
+    var superreviewlist = new SuperReviewList;
+    var needinfoList = new NeedInfoList;
   });
 
   $("#file-form").submit(function(event) {
