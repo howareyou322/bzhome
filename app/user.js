@@ -1,6 +1,7 @@
 function User(username, limit) {
   this.username = username;
   this.limit = limit;
+  this.start2query = 1;
 
   this.client = bz.createClient({
     username: username
@@ -11,6 +12,9 @@ User.prototype = {
   fields : 'id,summary,status,resolution,last_change_time'
 }
 
+User.prototype.stopquery = function() {
+  this.start2query = 0;
+}
 User.prototype.bugs = function(methods, callback) {
   var query = {
     email1: this.username,
@@ -68,7 +72,21 @@ User.prototype.requests = function(callback) {
       return callback(err);
     }
 
+    if (this.start2query == 0) {
+      console.log(name);
+      console.log("stop query");
+      return;
+    }
+
     bugs.forEach(function(bug) {
+
+      if (this.start2query == 0) {
+
+        console.log(name);
+        console.log("stop query2");
+        return;
+      }
+
       // only add attachments with this user as requestee
       if (bug.attachments) {
         bug.attachments.forEach(function(att) {

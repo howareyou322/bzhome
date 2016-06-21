@@ -11,44 +11,51 @@ $(document).ready(function() {
   bugopen=0;
   bugclose=0;
 
+  function insertTeamTable(index, people) {
+    var root = $("table.dynatable");
+    var prot = root.find(".template").clone();
+
+    prot.attr("class", "person");
+    prot.attr("id", "person"+index);
+    $("#teamtable").append(prot);
+    //$("# td>input")
+    if (people) {
+      $("#person"+id).find("td>input").val(people);
+      $("#person"+id).find("td>input").focus();
+    } else {
+      $("#person"+id).find("td>input").val("");
+      $("#person"+id).find("td>input").focus();
+    }
+  };
+
+  function initTeamTable() {
+    var team = ["howareyou322@gmail.com", "mtseng@mozilla.com",
+                "hshih@mozilla.com", "ethlin@mozilla.com", "vliu@mozilla.com"];
+
+    for(var i=0; i < team.length; i++) {
+      id++;
+      insertTeamTable(id, team[i]);
+    }
+  };
+
+  initTeamTable();
+
   $("table.dynatable button.add").click(function() {
     id++;
-    var master = $(this).parents("table.dynatable");
+    insertTeamTable(id, null);
 
-    // Get a new row based on the prototype row
-    var prot = master.find(".template").clone();
-    prot.attr("class", "person");
-    prot.attr("id", "person"+id);
-    $("#teamtable").append(prot);
     console.log("button add is clicked");
     $("#teamtable tr.person td>input").focus();
-
-    $("#teamtable tr.person td>input").keypress(function (e) {
-      if (e.which == 13) {
-        $(this).blur();
-        //$(this).prop("disabled", true);
-        console.log($(this).val());
-        $("#login-name").val($(this).val());
-        $("#login-name").submit();
-        console.log("finish input and trigger bugzilla query");
-      }
-    });
-
-    //traverse table function
-    $("#teamtable tr").each(function() {
-      $(this).find("td>input").each(function() {
-        console.log(this);
-        console.log($(this).val());
-        console.log("finish");
-      });
-    });
   });
 
   //TODO debug here
   $("#teamtable tr.person td.name").click(function() {
-    console.log($(this).find("input"));
-    console.log($(this).find("input").val());
     console.log("person is clicked");
+    console.log($(this).find("input").val());
+    $("#login-name").val($(this).find("input").val());
+    $("#login-name").submit();
+    console.log("finish input and trigger bugzilla query");
+
   });
 
   // Remove button functionality
@@ -99,9 +106,17 @@ $(document).ready(function() {
 
   input.blur(function() {
     var email = input.val();
-    if (email && email != bzhome.email) {
+    if (email &&
+        bzhome.email &&
+        email != bzhome.email) {
       bugopen=0;
       bugclose=0;
+      if (bzhome.user) {
+        console.log(email);
+        console.log(bzhome.email);
+        console.log("email is changed, stop query");
+        bzhome.user.stopquery();
+      }
       bzhome.login(email);
     }
   });
@@ -379,7 +394,6 @@ var bzhome = {
           console.log("found match start");
           $(this).find(".open").text(bugopen);
           $(this).find(".close").text(bugclose);
-
           console.log($(this).find(".open"));
           console.log("found match");
         }
