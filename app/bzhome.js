@@ -30,7 +30,9 @@ $(document).ready(function() {
 
   function initTeamTable() {
     var team = ["howareyou322@gmail.com", "mtseng@mozilla.com",
-                "hshih@mozilla.com", "ethlin@mozilla.com", "vliu@mozilla.com"];
+                "hshih@mozilla.com", "ethlin@mozilla.com",
+                "vliu@mozilla.com", "dmu@mozilla.com",
+                "kechen@mozilla.com", "cleu@mozilla.com", "brsun@mozilla.com"];
 
     for(var i=0; i < team.length; i++) {
       id++;
@@ -106,18 +108,22 @@ $(document).ready(function() {
 
   input.blur(function() {
     var email = input.val();
-    if (email &&
-        bzhome.email &&
-        email != bzhome.email) {
-      bugopen=0;
-      bugclose=0;
-      if (bzhome.user) {
+    if (email) {
+      if (typeof bzhome.user != 'undefined' && email != bzhome.email) {
+        bugopen=0;
+        bugclose=0;
         console.log(email);
         console.log(bzhome.email);
         console.log("email is changed, stop query");
         bzhome.user.stopquery();
+        delete bzhome.user;
+
+        setTimeout(function(){
+          bzhome.login(email);
+        }, 2000);
+      } else {
+        bzhome.login(email);
       }
-      bzhome.login(email);
     }
   });
 
@@ -127,10 +133,10 @@ $(document).ready(function() {
     input.blur();
 
     //var searchlist = new SearchList;
-    var reviewlist = new ReviewList;
-    var feedbacklist = new FeedbackList;
-    var superreviewlist = new SuperReviewList;
-    var needinfoList = new NeedInfoList;
+//    var reviewlist = new ReviewList;
+//    var feedbacklist = new FeedbackList;
+//    var superreviewlist = new SuperReviewList;
+//    var needinfoList = new NeedInfoList;
   });
 
   $("#file-form").submit(function(event) {
@@ -233,8 +239,6 @@ var bzhome = {
 
     localStorage['bzhome-email'] = email;
     bzhome.user = new User(email, bzhome.bugLimit);
-    console.log(bzhome.user);
-
     bzhome.populate();
     $("#content").show();
   },

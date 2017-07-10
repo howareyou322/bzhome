@@ -23,7 +23,7 @@ User.prototype.bugs = function(methods, callback) {
     limit: this.limit,
     include_fields: this.fields,
     //TODO generate time automatically
-    last_change_time: "2016-03-01"
+    last_change_time: "2017-04-01"
   };
 
   if (methods.indexOf('cced') >= 0) {
