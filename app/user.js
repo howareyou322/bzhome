@@ -2,10 +2,31 @@ function User(username, limit) {
   this.username = username;
   this.limit = limit;
   this.start2query = 1;
+  this.bugopen = 0;
+  this.bugclose = 0;
 
   this.client = bz.createClient({
     username: username
   });
+}
+
+function getLastQuarter() {
+  var quarterAdjustment= (moment().month() % 3) + 1;
+  var lastQuarterEndDate = moment().subtract({ months: quarterAdjustment }).endOf('month');
+  var lastQuarterStartDate = lastQuarterEndDate.clone().subtract({ months: 2 }).startOf('month');
+
+  //  $("#body").append("<div class=\"bugcount\">"+ moment(lastQuarterStartDate).format('YYYY-MM-DD') + "</div>");
+  return moment(lastQuarterStartDate).format('YYYY-MM-DD');
+}
+
+function getThisQuarter() {
+  var quarterAdjustment= (moment().month() % 3) + 1;
+  var thisQuarterEndDate = moment().endOf('month');
+  var thisQuarterStartDate = thisQuarterEndDate.clone().subtract({ months: 2 }).startOf('month');
+
+    $("#title").append("<div class=\"bugcount\">"+ moment(thisQuarterStartDate).format('YYYY-MM-DD') + "</div>");
+    $("#title").append("<div class=\"bugcount\">"+ moment(thisQuarterEndDate).format('YYYY-MM-DD') + "</div>");
+  return moment(thisQuarterStartDate).format('YYYY-MM-DD');
 }
 
 User.prototype = {
@@ -22,16 +43,18 @@ User.prototype.bugs = function(methods, callback) {
     order: "changeddate DESC",
     limit: this.limit,
     include_fields: this.fields,
-    //TODO generate time automatically
     last_change_time: "2017-04-01"
   };
+  query['last_change_time'] = getLastQuarter();
+
+  $("#title").text("Team from " +getLastQuarter());
 
   if (methods.indexOf('cced') >= 0) {
     query['email1_cc'] = 1;
   }
   if (methods.indexOf('assigned') >= 0) {
     query['email1_assigned_to'] = 1;
-    query['limit']= 50;
+    query['limit']= 100;
   }
   if (methods.indexOf('reporter') >= 0) {
     query['email1_reporter'] = 1;

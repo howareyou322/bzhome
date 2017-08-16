@@ -8,8 +8,6 @@ $(document).ready(function() {
     console.error(e);
   }
   var id=0;
-  bugopen=0;
-  bugclose=0;
 
   function insertTeamTable(index, people) {
     var root = $("table.dynatable");
@@ -110,8 +108,6 @@ $(document).ready(function() {
     var email = input.val();
     if (email) {
       if (typeof bzhome.user != 'undefined' && email != bzhome.email) {
-        bugopen=0;
-        bugclose=0;
         console.log(email);
         console.log(bzhome.email);
         console.log("email is changed, stop query");
@@ -379,40 +375,18 @@ var bzhome = {
     var html = "";
     for (var i = 0; i < bugs.length; i++) {
       html += bzhome.templates.timelineBug({ bug: bugs[i] });
-
-      if (type=='assigned') {
-        if (!bzhome.isOpen(bugs[i])) {
-          bugclose++;
-          console.log("closed bug");
-          console.log(bugs[i].id);
-        } else {
-          bugopen++;
-        }
-      }
     }
     element.append(html);
-
-    if (type=='assigned') {
-      $("#teamtable tr").each(function() {
-        if($(this).find("td>input").val() == $("#login-name").val()) {
-          console.log("found match start");
-          $(this).find(".open").text(bugopen);
-          $(this).find(".close").text(bugclose);
-          console.log($(this).find(".open"));
-          console.log("found match");
-        }
-      });
-    }
 
     $(".timeago").timeago();
 
     // fetch the recent events for each bug asynchronously
     bugs.forEach(function(bug) { bzhome.populateEvents(bug, type) });
   },
-  
+
   populateEvents : function(bug, type) {
     var id = "#" + type + " .bug-" + bug.id;
-    
+
     bzhome.user.client.getBug(bug.id, {
       include_fields: 'id,assigned_to,summary,status,resolution,history,'
         + 'comments,last_change_time,creator,creation_time,assigned_to_detail'
@@ -420,11 +394,11 @@ var bzhome = {
       if (err) {
         return console.log(err);
       }
-      
+
       if (!bzhome.isOpen(bug)) {
         $(id + " .timeline-bug").addClass("closed-bug");
       }
-      
+
       var events = [],
           history = bug.history;
       /*
@@ -440,12 +414,16 @@ var bzhome = {
        */
 
       var comments = bug.comments;
+      var assignee_lastUpdateTime;
       comments.reverse(); // newest to oldest
       for (var i = 0; i < comments.length; i++) {
         var comment = comments[i];
-        if (type == 'assigned' && bug.assigned_to.name == comment.creator.name) {
+        if (!assignee_lastUpdateTime &&
+            type == 'assigned' &&
+            bug.assigned_to.name == comment.creator.name) {
           //TODO debug
-          //console.log(comment);
+          assignee_lastUpdateTime = comment.creation_time;
+          console.log(comment);
         }
         events.push({
           time: comment.creation_time,
@@ -459,7 +437,36 @@ var bzhome = {
         creator: bug.creator,
         created: true
       });
-      
+
+      var lastDate = new Date(assignee_lastUpdateTime);
+      var d = new Date();
+      d.setMonth(d.getMonth() - 3);
+
+      if (type == 'assigned') {
+        if (lastDate > d) {
+          $(id).append("<span class='timeago'" +" title=" + assignee_lastUpdateTime + ">");
+          if (!bzhome.isOpen(bug)) {
+            bzhome.user.bugclose++;
+            //              console.log("closed bug");
+            //              console.log(bug.id);
+          } else {
+            bzhome.user.bugopen++;
+          }
+          $("#teamtable tr").each(function() {
+            if($(this).find("td>input").val() == $("#login-name").val()) {
+              console.log("found match start");
+              $(this).find(".open").text(bzhome.user.bugopen);
+              $(this).find(".close").text(bzhome.user.bugclose);
+              //       console.log($(this).find(".open"));
+              //       console.log("found match");
+            }
+          });
+        } else {
+          $(id).hide();
+        }
+      }
+
+      console.log(bzhome.user.bugopen + " " + bzhome.user.bugclose);
       var html = bzhome.templates.bugEvents({ bug: bug, events:events });
       $(id).append(html);
       
